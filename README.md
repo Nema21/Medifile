@@ -1,1 +1,270 @@
-# Medifile
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medifile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!--where the logo and the users logout session-->
+<header>
+    <img src="catlogo.webp" alt="Logo" class="logo"> 
+    <h1 style="margin: 0;">Medifile</h1>
+    <i class="fas fa-user account-icon" onclick="toggleUserInfo()"></i>
+    <div class="user-info" id="userInfo">
+        <h3><i class="fas fa-user"></i> Account</h3>
+        <p id="userDetails"></p>
+        <button class="button" onclick="showSettings()">Settings</button>
+        <button class="button" onclick="logout()">Logout</button>
+    </div>
+</header>
+
+<!--navigation links-->
+<div class="nav-header">
+    <nav>
+        <ul>
+        <li><a href="#home" class="active">Home</a></li>
+        <li><a href="#patients">Patients</a></li>
+        <li><a href="#records">Records</a></li>
+        </ul>
+    </nav>
+</div>
+
+<!--home page-->
+<div class="container" id="home">
+    <div class="main-content">
+        <h2>Recent Patients</h2>
+        <table>
+            <tr>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Date</th>
+            </tr>
+            <tbody id="recentPatients"></tbody>
+        </table>
+    </div>
+</div>
+<!--patient page-->
+<div class="container" id="patients" style="display:none;">
+    <div class="main-content">
+    <h2>Patients</h2>
+    <button class="add" onclick="openModal()">Add Patient</button>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Department</th>
+            <th>Complaints</th>
+            <th></th>
+        </tr>
+        <tbody id="patientRecords"></tbody>
+    </table>
+    </div>
+    </div>
+<!--record page-->
+<div class="container" id="records" style="display:none;">
+
+    <div class="content">
+    <h3>Diagnosis</h3>
+    <table>
+        <tr>
+            <th>Diagnosis</th>
+            <th>Total</th>
+        </tr>
+        <tbody id="diagnosisCount"></tbody>
+    </table>
+
+    <h3>Department</h3>
+    <table>
+        <tr>
+            <th>Department</th>
+            <th>Total</th>
+        </tr>
+        <tbody id="departmentCount"></tbody>
+    </table>
+
+    <h3>Monthly Total</h3>
+    <table>
+        <tr>
+            <th>Month</th>
+            <th>Total</th>
+        </tr>
+        <tbody id="monthlyTotals"></tbody>
+    </table>
+
+    <h3>Yearly Total</h3>
+    <p id="yearlyTotal"></p>
+</div>
+</div>
+<!-- Add Patient Modal -->
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle">Add Patient</h2>
+        <form id="patientForm">
+            <div>
+            <label for="date"><strong>Date</strong></label><br>
+            <input type="date" id="date" name="date" required>
+            </div>
+            <div>
+            <label for="time"><strong>Time</strong></label><br>
+            <input type="time" id="time" name="time" required>
+            </div>
+            <div>
+            <label for="name"><strong>Name</strong></label><br>
+            <input type="text" id="name" name="name" required>
+            </div>
+            <div>
+            <label for="gender"><strong>Gender</strong></label><br>
+            <select id="gender" name="gender" required>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+            </select>
+            </div>
+            <div>
+            <label for="department"><strong>Department</strong></label><br>
+            <input type="text" id="department" name="department" required>
+            </div>
+            <div>
+            <label for="birthdate"><strong>Birthdate</strong></label><br>
+            <input type="date" id="birthdate" name="birthdate" required>
+            </div>
+            <div>
+            <label for="contact"><strong>Contact</strong></label><br>
+            <input type="text" id="contact" name="contact" required>
+            </div>
+            <div>
+            <label for="complaints"><strong>Complaints</strong></label><br>
+            <textarea id="complaints" name="complaints" rows="3" required></textarea>
+            </div>
+            <div>
+            <label for="medication"><strong>Medication</strong></label><br>
+            <input type="text" id="medication" name="medication" required>
+            </div>
+            <div>
+            <label for="diagnosis"><strong>Diagnosis</strong></label><br>
+            <input type="text" id="diagnosis" name="diagnosis" required>
+            </div>
+            <div>
+            <label for="doctorName"><strong>Doctor's Name</strong></label><br>
+            <input type="text" id="doctorName" name="doctorName" required>
+            </div>
+            <div>
+            <label for="doctorContact"><strong>Doctor's Contact</strong></label><br> 
+            <input type="text" id="doctorContact" name="doctorContact" required>
+            </div>
+            <div class="button-container">
+                <button class="submit" type="submit" id="submitButton">Save</button>
+                <button type="button" class="cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+<!--oatient modal-->
+<div class="modal" id="recordModal">
+    <div class="modal-content">
+        <h2>Patient Record</h2>
+        <div id="recordDetails"></div>
+        <br>
+        <div class="button-container">
+            <button type="button" class="cancel" onclick="editRecord()">Edit</button>
+            <button type="button" class="cancel" onclick="deleteRecord()">Delete</button>
+            <button type="button" class="cancel" onclick="closeRecordModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="settingsModal" class="moda" style="display:none;">
+    <div class="mo">
+        <span onclick="closeSettings()" class="close">&times;</span>
+        <div class="settings">
+            <h2>Themes</h2>
+            <div class="theme-mode">
+                <label>Auto</label>
+                <input type="radio" name="theme-mode" value="auto" />
+                <label>Dark</label>
+                <input type="radio" name="theme-mode" value="dark" />
+            </div>
+            <button id="saveButton" class="save" onclick="saveSettings()">Save</button>
+            
+            <h2>Account Management</h2>
+            <div class="account-menu">
+                <h3>Accounts</h3>
+                <ul id="accountList"></ul>
+                <button id="deleteAccount" class="button">Delete Account</button>
+            </div>
+        
+        </div>
+    </div>
+</div>
+<footer>
+    <p>&copy; 2023 Medifile. All rights reserved.</p>
+</footer>
+<script src="validate.js"></script>
+<script>
+        // Toggle User Info
+        function toggleUserInfo() {
+        const userInfo = document.getElementById('userInfo');
+        userInfo.style.display = userInfo.style.display === 'block' ? 'none' : 'block';
+    }
+
+    // Show Settings Function
+    function showSettings() {
+        document.getElementById('settingsModal').style.display = 'block';
+        loadAccounts(); // Load accounts when settings are shown
+    }
+
+    // Close Settings Function
+    function closeSettings() {
+        document.getElementById('settingsModal').style.display = 'none';
+    }
+
+    // Load saved accounts
+    function loadAccounts() {
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+        const accountList = document.getElementById('accountList');
+        accountList.innerHTML = ''; // Clear previous list
+
+        users.forEach(user => {
+            const li = document.createElement('li');
+            li.innerHTML = `<input type="radio" name="account" value="${user.email}"> ${user.email}`;
+            accountList.appendChild(li);
+        });
+    }
+
+    // Delete account functionality
+    document.getElementById('deleteAccount').onclick = function() {
+        const selectedAccount = document.querySelector('input[name="account"]:checked');
+        if (!selectedAccount) {
+            alert("Please select an account to delete.");
+            return;
+        }
+
+        const emailToDelete = selectedAccount.value;
+        let users = JSON.parse(localStorage.getItem('users')) || [];
+        
+        // Remove the user from the array
+        users = users.filter(user => user.email !== emailToDelete);
+        localStorage.setItem('users', JSON.stringify(users)); // Update local storage
+
+        alert(`Account ${emailToDelete} deleted successfully.`);
+        loadAccounts(); // Refresh the account list
+    };
+
+
+    // Open and close modal functions, etc...
+    function openModal() {
+        document.getElementById('modal').style.display = 'block';
+    }
+
+    function closeModal() {
+        document.getElementById('modal').style.display = 'none';
+    }
+
+    function closeRecordModal() {
+        document.getElementById('recordModal').style.display = 'none';
+    }
+</script>
+</body>
+</html># Medifile
