@@ -3,71 +3,59 @@ const patientRecords = [];
 const diagnosisCount = {};
 const departmentCount = {};
 const monthlyCounts = Array(12).fill(0);
+const monthlyGenderCounts = Array.from({ length: 12 }, () => ({ total: 0, male: 0, female: 0 }));
 let currentPatientIndex = null;
 
 function saveSettings() {
     const selectedTheme = document.querySelector('input[name="theme-mode"]:checked').value;
-
-    // Change header, nav, and footer colors based on the selected theme
     const header = document.querySelector('header');
     const nav = document.querySelector('nav');
     const footer = document.querySelector('footer');
 
-     if (selectedTheme === 'dark') {
-        header.style.backgroundColor = 'rgba(20, 20, 20, 0.9)'; // Darker header background
-        nav.style.backgroundColor = 'rgba(20, 20, 20, 0.9)'; // Darker nav background
-        footer.style.backgroundColor = 'rgba(20, 20, 20, 0.9)'; // Darker footer background
-        header.style.color = '#ffffff'; // Light text
-        nav.style.color = '#ffffff'; // Light text
-        footer.style.color = '#ffffff'; // Light text
-
-        // Save the theme to localStorage
+    if (selectedTheme === 'dark') {
+        header.style.backgroundColor = 'rgba(20, 20, 20, 0.9)';
+        nav.style.backgroundColor = 'rgba(20, 20, 20, 0.9)';
+        footer.style.backgroundColor = 'rgba(20, 20, 20, 0.9)';
+        header.style.color = '#ffffff';
+        nav.style.color = '#ffffff';
+        footer.style.color = '#ffffff';
         localStorage.setItem('theme', 'dark');
-
     } else if (selectedTheme === 'auto') {
-        // Restore original colors for auto mode
-        document.body.style.backgroundColor = ''; // Reset to default
-        document.body.style.color = ''; // Reset to default
-
-        header.style.backgroundColor = 'rgba(53, 66, 74, 0.9)'; // Original header background
-        nav.style.backgroundColor = 'rgba(53, 66, 74, 0.9)'; // Original nav background
-        footer.style.backgroundColor = 'rgba(53, 66, 74, 0.9)'; // Original footer background
-        header.style.color = '#ffffff'; // Light text
-        nav.style.color = '#ffffff'; // Light text
-        footer.style.color = '#ffffff'; // Light text
-
-        // Save the theme to localStorage
+        document.body.style.backgroundColor = '';
+        document.body.style.color = '';
+        header.style.backgroundColor = 'rgba(53, 66, 74, 0.9)';
+        nav.style.backgroundColor = 'rgba(53, 66, 74, 0.9)';
+        footer.style.backgroundColor = 'rgba(53, 66, 74, 0.9)';
+        header.style.color = '#ffffff';
+        nav.style.color = '#ffffff';
+        footer.style.color = '#ffffff';
         localStorage.setItem('theme', 'auto');
     }
-    
 }
 
-// Function to load the theme from localStorage
 function loadTheme() {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
         const themeRadio = document.querySelector(`input[name="theme-mode"][value="${savedTheme}"]`);
         if (themeRadio) {
-            themeRadio.checked = true; // Set the radio button as checked
-            saveSettings(); // Apply the saved settings
+            themeRadio.checked = true;
+            saveSettings();
         }
     }
 }
 
-// Call loadTheme on page load
 window.onload = function() {
-    loadTheme(); // Load the theme
+    loadTheme();
     const storedPatients = JSON.parse(localStorage.getItem('patients'));
     if (storedPatients) {
         storedPatients.forEach(patient => {
             patientRecords.push(patient);
             recentPatients.push(patient);
+            updateCounts(patient.diagnosis, patient.department, patient.date, patient.gender);
         });
         updateRecentPatients();
         updatePatientRecords();
-        storedPatients.forEach(patient => {
-            updateCounts(patient.diagnosis, patient.department, patient.date);
-        });
+        updateYearlyTotal();
     }
 };
 
@@ -89,35 +77,59 @@ document.getElementById('patientForm').onsubmit = function(event) {
     };
 
     if (currentPatientIndex !== null) {
-        // Update existing record
         patientRecords[currentPatientIndex] = patientRecord;
     } else {
-        // Add new record
         recentPatients.push(patientRecord);
         patientRecords.push(patientRecord);
     }
 
-    // Update local storage
     localStorage.setItem('patients', JSON.stringify(patientRecords));
-
-    // Refresh the displayed records
     updateRecentPatients();
     updatePatientRecords();
-
+    updateCounts(patientRecord.diagnosis, patientRecord.department, patientRecord.date, patientRecord.gender);
+    updateYearlyTotal();
     closeModal();
     document.getElementById('patientForm').reset();
     currentPatientIndex = null;
 };
 
-function updateCounts(diagnosis, department, date) {
-    diagnosisCount[diagnosis] = (diagnosisCount[diagnosis] || 0) + 1;
-    departmentCount[department] = (departmentCount[department] || 0) + 1;
+function updateCounts(diagnosis, department, date, gender) {
+    // Update Diagnosis Count
+    const diagnosisData = diagnosisCount[diagnosis] || { total: 0, male: 0, female: 0 };
+    diagnosisData.total++;
+    if (gender === 'male') {
+        diagnosisData.male++;
+    } else if (gender === 'female') {
+        diagnosisData.female++;
+    }
+    diagnosisCount[diagnosis] = diagnosisData;
+
+    // Update Department Count
+    const departmentData = departmentCount[department] || { total: 0, male: 0, female: 0 };
+    departmentData.total++;
+    if (gender === 'male') {
+        departmentData.male++;
+    } else if (gender === 'female') {
+        departmentData.female++;
+    }
+    departmentCount[department] = departmentData;
+
+    // Update Monthly Counts
     const recordDate = new Date(date);
-    monthlyCounts[recordDate.getMonth()] += 1;
+    monthlyCounts[recordDate.getMonth()]++;
+
+    const monthlyData = monthlyGenderCounts[recordDate.getMonth()] || { total: 0, male: 0, female: 0 };
+    monthlyData.total++;
+    if (gender === 'male') {
+        monthlyData.male++;
+    } else if (gender === 'female') {
+        monthlyData.female++;
+    }
+    monthlyGenderCounts[recordDate.getMonth()] = monthlyData;
+
     updateDiagnosisCount();
     updateDepartmentCount();
     updateMonthlyTotals();
-    updateYearlyTotal();
 }
 
 function updateRecentPatients() {
@@ -146,27 +158,16 @@ function viewRecord(index) {
     currentPatientIndex = index;
     const details = `
         <strong>Name:</strong> ${patient.name}<br>
-        <br>
         <strong>Gender:</strong> ${patient.gender}<br>
-        <br>
         <strong>Department:</strong> ${patient.department}<br>
-        <br>
         <strong>Birthdate:</strong> ${patient.birthdate}<br>
-        <br>
         <strong>Contact:</strong> ${patient.contact}<br>
-        <br>
         <strong>Complaints:</strong> ${patient.complaints}<br>
-        <br>
         <strong>Medication:</strong> ${patient.medication}<br>
-        <br>
         <strong>Diagnosis:</strong> ${patient.diagnosis}<br>
-        <br>
         <strong>Date:</strong> ${patient.date}<br>
-        <br>
         <strong>Time:</strong> ${patient.time}<br>
-        <br>
         <strong>Doctor's Name:</strong> ${patient.doctorName}<br>
-        <br>
         <strong>Doctor's Contact:</strong> ${patient.doctorContact}<br>
     `;
     document.getElementById('recordDetails').innerHTML = details;
@@ -193,7 +194,6 @@ function editRecord() {
         document.getElementById('doctorName').value = patient.doctorName;
         document.getElementById('doctorContact').value = patient.doctorContact;
 
-        // Change modal title and button text
         document.getElementById('modalTitle').innerText = 'Edit Patient';
         document.getElementById('submitButton').innerText = 'Update';
 
@@ -204,23 +204,12 @@ function editRecord() {
 
 function deleteRecord() {
     if (currentPatientIndex !== null) {
-        patientRecords.splice(currentPatientIndex, 1); // Remove from records
-        recentPatients.splice(currentPatientIndex, 1); // Remove from recent patients
+        patientRecords.splice(currentPatientIndex, 1);
+        recentPatients.splice(currentPatientIndex, 1);
         localStorage.setItem('patients', JSON.stringify(patientRecords));
         updateRecentPatients();
         updatePatientRecords();
         closeRecordModal();
-        // Update local storage
-        localStorage.setItem('patients', JSON.stringify(patientRecords));
-
-        // Refresh the displayed records
-        updateRecentPatients();
-        updatePatientRecords();
-
-        // Close the record modal
-        closeRecordModal();
-
-        // Reset the currentPatientIndex
         currentPatientIndex = null;
     }
 }
@@ -228,16 +217,28 @@ function deleteRecord() {
 function updateDiagnosisCount() {
     const tbody = document.getElementById('diagnosisCount');
     tbody.innerHTML = '';
-    Object.entries(diagnosisCount).forEach(([diagnosis, count]) => {
-        tbody.innerHTML += `<tr><td>${diagnosis}</td><td>${count}</td></tr>`;
+    Object.entries(diagnosisCount).forEach(([diagnosis, counts]) => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${diagnosis}</td>
+                <td>${counts.total}</td>
+                <td>${counts.male}</td>
+                <td>${counts.female}</td>
+            </tr>`;
     });
 }
 
 function updateDepartmentCount() {
     const tbody = document.getElementById('departmentCount');
     tbody.innerHTML = '';
-    Object.entries(departmentCount).forEach(([department, count]) => {
-        tbody.innerHTML += `<tr><td>${department}</td><td>${count}</td></tr>`;
+    Object.entries(departmentCount).forEach(([department, counts]) => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${department}</td>
+                <td>${counts.total}</td>
+                <td>${counts.male}</td>
+                <td>${counts.female}</td>
+            </tr>`;
     });
 }
 
@@ -248,8 +249,14 @@ function updateMonthlyTotals() {
         "January", "February", "March", "April", "May", "June", 
         "July", "August", "September", "October", "November", "December"
     ];
-    monthlyCounts.forEach((count, index) => {
-        tbody.innerHTML += `<tr><td>${monthNames[index]}</td><td>${count}</td></tr>`;
+    monthlyGenderCounts.forEach((counts, index) => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${monthNames[index]}</td>
+                <td>${counts.total}</td>
+                <td>${counts.male}</td>
+                <td>${counts.female}</td>
+            </tr>`;
     });
 }
 
@@ -287,15 +294,16 @@ function toggleUserInfo() {
 function showSettings() {
     const settingsModal = document.getElementById('settingsModal');
     if (settingsModal) {
-        settingsModal.style.display = 'block'; // Show the settings modal
+        settingsModal.style.display = 'block';
     } else {
         alert('Settings functionality not implemented yet.');
     }
 }
+
 function loadAccounts() {
     const users = JSON.parse(localStorage.getItem('users')) || [];
     const accountList = document.getElementById('accountList');
-    accountList.innerHTML = ''; // Clear previous list
+    accountList.innerHTML = '';
 
     users.forEach(user => {
         const li = document.createElement('li');
@@ -303,6 +311,7 @@ function loadAccounts() {
         accountList.appendChild(li);
     });
 }
+
 document.getElementById('deleteAccount').onclick = function() {
     const selectedAccount = document.querySelector('input[name="account"]:checked');
     if (!selectedAccount) {
@@ -312,20 +321,18 @@ document.getElementById('deleteAccount').onclick = function() {
 
     const emailToDelete = selectedAccount.value;
     let users = JSON.parse(localStorage.getItem('users')) || [];
-    
-    // Remove the user from the array
     users = users.filter(user => user.email !== emailToDelete);
-    localStorage.setItem('users', JSON.stringify(users)); // Update local storage
+    localStorage.setItem('users', JSON.stringify(users));
 
     alert(`Account ${emailToDelete} deleted successfully.`);
-    loadAccounts(); // Refresh the account list
+    loadAccounts();
 };
+
 function closeSettings() {
     const settingsModal = document.getElementById('settingsModal');
-    settingsModal.style.display = 'none'; // Hide the settings modal
+    settingsModal.style.display = 'none';
 }
 
-// Event listener for closing settings modal when clicking outside of it
 window.onclick = function(event) {
     const settingsModal = document.getElementById('settingsModal');
     if (event.target === settingsModal) {
