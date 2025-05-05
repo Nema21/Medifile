@@ -238,28 +238,15 @@ function deleteRecord() {
     }
 }
 
-function updateDiagnosisCount() {
-    const maleDiv = document.getElementById('diagnosisCountMale');
-    const femaleDiv = document.getElementById('diagnosisCountFemale');
-    const totalDiv = document.getElementById('totalDiagnosisCount');
-    
-    maleDiv.innerHTML = '<strong>Male:</strong><br>';
-    femaleDiv.innerHTML = '<strong>Female:</strong><br>';
-    
-    let totalMale = 0;
-    let totalFemale = 0;
-
-    Object.entries(diagnosisCount.male).forEach(([diagnosis, count]) => {
-        maleDiv.innerHTML += `${diagnosis}: ${count}<br>`;
-        totalMale += count;
+function updateDepartmentCount() {
+    const tbody = document.getElementById('departmentCount');
+    tbody.innerHTML = '';
+    Object.entries(departmentCount).forEach( genderEntry=>{
+        const[gender, departments]=genderEntry;
+    Object. entries(departments).forEach(([department, count]) => {
+        tbody.innerHTML += `<tr><td>${gender.charAt(0).toUpperCase()+gender.slice(1)}-${department}</td><td>${count}</td></tr>`;
     });
-
-    Object.entries(diagnosisCount.female).forEach(([diagnosis, count]) => {
-        femaleDiv.innerHTML += `${diagnosis}: ${count}<br>`;
-        totalFemale += count;
     });
-
-    totalDiv.innerHTML = `<strong>Total:</strong> Male: ${totalMale}, Female: ${totalFemale}`;
 }
 
 function updateDepartmentCount() {
