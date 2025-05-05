@@ -77,7 +77,7 @@ document.getElementById('patientForm').onsubmit = function(event) {
     };
 
     if (currentPatientIndex !== null) {
-        patientRecords[currentPatientIndex] = patientRecord;alert('Saved.');
+        patientRecords[currentPatientIndex] = patientRecord;
     } else {
         recentPatients.push(patientRecord);
         patientRecords.push(patientRecord);
@@ -91,7 +91,7 @@ document.getElementById('patientForm').onsubmit = function(event) {
     closeModal();
     document.getElementById('patientForm').reset();
     currentPatientIndex = null;
-    
+    alert('Saved.');
 };
 
 function updateCounts(diagnosis, department, date, gender) {
