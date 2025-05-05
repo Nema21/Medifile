@@ -2,7 +2,7 @@ const recentPatients = [];
 const patientRecords = [];
 const diagnosisCount = {male: {}, female: {}};
 const departmentCount = {male: {}, female: {}};
-const monthlyCounts = {male: Array(12).fill(0), female: Array(12).fill(0);
+const monthlyCounts = {male: Array(12).fill(0), female: Array(12).fill(0)};
 let currentPatientIndex = null;
 
 function saveSettings() {
