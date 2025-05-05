@@ -1,8 +1,8 @@
 const recentPatients = [];
 const patientRecords = [];
-const diagnosisCount = {};
-const departmentCount = {};
-const monthlyCounts = Array(12).fill(0);
+const diagnosisCount = {male: {}, female: {}};
+const departmentCount = {male: {}, female: {}};
+const monthlyCounts = {male: Array(12).fill(0), female: Array(12).fill(0);
 let currentPatientIndex = null;
 
 function saveSettings() {
@@ -114,6 +114,19 @@ function updateCounts(diagnosis, department, date) {
     departmentCount[department] = (departmentCount[department] || 0) + 1;
     const recordDate = new Date(date);
     monthlyCounts[recordDate.getMonth()] += 1;
+    
+    if(gender==='male'){
+        diagnosisCount.male[diagnosis]=(diagnosisCount.male[diagnosis] || 0)+1;
+        departmentCount.male[department]=(departmentCount.male[department] || 0)+1;
+        const recordDate = new Date(date);
+        monthlyCounts.male[recordDate.getMonth()]+1=;
+    }else if (gender==='female'){
+        diagnosisCount.female[diagnosis]=(diagnosisCount.female[diagnosis] || 0)+1;
+        departmentCount.female[department]=(departmentCount.female[department] || 0)+1;
+        const recordDate = new Date(date);
+        monthlyCounts.female[recordDate.getMonth()]+1=;
+    }
+    
     updateDiagnosisCount();
     updateDepartmentCount();
     updateMonthlyTotals();
@@ -228,16 +241,22 @@ function deleteRecord() {
 function updateDiagnosisCount() {
     const tbody = document.getElementById('diagnosisCount');
     tbody.innerHTML = '';
+    Object.entries(diagnosisCount).forEach( genderEntry=>{
+        const[gender, diagnoses]=genderEntry;
     Object.entries(diagnosisCount).forEach(([diagnosis, count]) => {
-        tbody.innerHTML += `<tr><td>${diagnosis}</td><td>${count}</td></tr>`;
+        tbody.innerHTML += `<tr><td>${gender.charAt(0).toUpperCase()+gender.slice(1)}-${diagnosis}</td><td>${count}</td></tr>`;
+    });
     });
 }
 
 function updateDepartmentCount() {
     const tbody = document.getElementById('departmentCount');
     tbody.innerHTML = '';
-    Object.entries(departmentCount).forEach(([department, count]) => {
-        tbody.innerHTML += `<tr><td>${department}</td><td>${count}</td></tr>`;
+    Object.entries(departmentCount).forEach( genderEntry=>{
+        const[gender, departments]=genderEntry;
+    Object. entries(departments).forEach(([department, count]) => {
+        tbody.innerHTML += `<tr><td>${gender.charAt(0).toUpperCase()+gender.slice(1)}-${department}</td><td>${count}</td></tr>`;
+    });
     });
 }
 
@@ -248,9 +267,14 @@ function updateMonthlyTotals() {
         "January", "February", "March", "April", "May", "June", 
         "July", "August", "September", "October", "November", "December"
     ];
-    monthlyCounts.forEach((count, index) => {
-        tbody.innerHTML += `<tr><td>${monthNames[index]}</td><td>${count}</td></tr>`;
+    ['male','female'].forEach(gender =>{
+    monthlyCounts[gender].forEach((count, index) => {
+        tbody.innerHTML += `<tr><td>${gender.charAt(0).toUpperCase()+gender.slice(1)}-${monthNames[index]}</td><td>${count}</td></tr>`;
     });
+    });
+
+
+
 }
 
 function updateYearlyTotal() {
